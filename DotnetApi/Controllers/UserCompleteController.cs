@@ -51,23 +51,24 @@ namespace DotnetApi.Controllers
         [HttpPut("UpsertUser")]
         public IActionResult UpsertUser(UserComplete user)
         {
-            string sql = @"EXEC TutorialAppSchema.spUser_Upsert
-            @FirstName = '" + user.FirstName +
-                "', @LastName = '" + user.LastName +
-                "', @Email = '" + user.Email +
-                "', @Gender = '" + user.Gender +
-                "', @Active = '" + user.Active +
-                "', @JobTitle = '" + user.JobTitle +
-                "', @Department = '" + user.Department +
-                "', @Salary = '" + user.Salary +
-                "', @UserId = " + user.UserId;
+            string sql = $@"EXEC TutorialAppSchema.spUser_Upsert
+                        @FirstName = '{user.FirstName}',
+                        @LastName = '{user.LastName}',
+                        @Email = '{user.Email}',
+                        @Gender = '{user.Gender}',
+                        @Active = '{user.Active}',
+                        @JobTitle = '{user.JobTitle}',
+                        @Department = '{user.Department}',
+                        @Salary = { user.Salary},
+                        @UserId = { user.UserId}";
+;
 
             if (_dapper.ExecuteSql(sql))
             {
                 return Ok();
             }
 
-            throw new Exception("Failed to Update User");
+           return BadRequest("Failed to Update User");
         }
 
         [HttpDelete("DeleteUser/{userId}")]
@@ -81,7 +82,7 @@ namespace DotnetApi.Controllers
                 return Ok();
             }
 
-            throw new Exception("Failed to Delete User");
+            return BadRequest("Failed to Delete User");
         }
     }
 }
