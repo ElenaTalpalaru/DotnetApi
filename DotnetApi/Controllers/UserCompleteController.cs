@@ -6,13 +6,12 @@ using System;
 
 namespace DotnetApi.Controllers
 {
+
     [ApiController]
     [Route("[controller]")]
     public class UserCompleteController : ControllerBase
     {
-
         DataContextDapper _dapper;
-
         public UserCompleteController(IConfiguration config)
         {
             _dapper = new DataContextDapper(config);
@@ -23,104 +22,66 @@ namespace DotnetApi.Controllers
         {
             return _dapper.LoadDataSingle<DateTime>("SELECT GETDATE()");
         }
-        
-        [HttpGet("GetUsers")]
-            //public IEnumerable<User> GetUsers()
-        public IEnumerable<UserComplete> GetUsers()
+
+        [HttpGet("GetUsers/{userId}/{isActive}")]
+        // public IEnumerable<User> GetUsers()
+        public IEnumerable<UserComplete> GetUsers(int userId, bool isActive)
         {
-            string sql = @"SELECT[Users].[UserId],
-            [Users].[FirstName],
-            [Users].[LastName],
-            [Users].[Email],
-            [Users].[Gender],
-            [Users].[Active]
-            FROM TutorialAppSchema.Users";
+            string sql = @"EXEC TutorialAppSchema.spUsers_Get";
+            string parameters = "";
+
+            if (userId != 0)
+            {
+                parameters += ", @UserId=" + userId.ToString();
+            }
+            if (isActive)
+            {
+                parameters += ", @Active=" + isActive.ToString();
+            }
+
+            if (parameters.Length > 0)
+            {
+                sql += parameters.Substring(1);//, parameters.Length);
+            }
 
             IEnumerable<UserComplete> users = _dapper.LoadData<UserComplete>(sql);
             return users;
         }
 
-        [HttpGet("GetUsers/{userId}")]
-        //public IEnumerable<User> GetUsers()
-        public User GetSingleUser(int userId)
+        [HttpPut("UpsertUser")]
+        public IActionResult UpsertUser(UserComplete user)
         {
-            string sql = @"SELECT [Users].[UserId],
-            [Users].[FirstName],
-            [Users].[LastName],
-            [Users].[Email],
-            [Users].[Gender],
-            [Users].[Active] 
-            FROM  TutorialAppSchema.Users
-                WHERE UserId = " + userId.ToString();
-
-            User user = _dapper.LoadDataSingle<User>(sql);
-            return user;
-        }
-
-        [HttpPut("EditUser")]
-        public IActionResult EditUser(User user)
-        {
-            string sql = @"UPDATE TutorialAppSchema.Users
-                            SET [FirstName] = '" + user.FirstName +
-                                "', [LastName] = '" + user.LastName +
-                                "', [Email] = '" + user.Email +
-                                "', [Gender] = '" + user.Gender +
-                                "', [Active] = '" + user.Active  +
-                            "' WHERE UserId = " + user.UserId;
-            Console.WriteLine(sql);
+            string sql = @"EXEC TutorialAppSchema.spUser_Upsert
+            @FirstName = '" + user.FirstName +
+                "', @LastName = '" + user.LastName +
+                "', @Email = '" + user.Email +
+                "', @Gender = '" + user.Gender +
+                "', @Active = '" + user.Active +
+                "', @JobTitle = '" + user.JobTitle +
+                "', @Department = '" + user.Department +
+                "', @Salary = '" + user.Salary +
+                "', @UserId = " + user.UserId;
 
             if (_dapper.ExecuteSql(sql))
             {
                 return Ok();
             }
 
-            throw new Exception("Failed to update user");
-            
+            throw new Exception("Failed to Update User");
         }
-
-        [HttpPost]
-        public IActionResult AddUser(UserToAddDto user)
-        {
-            string sql = @"INSERT INTO TutorialAppSchema.Users
-                    ([FirstName],
-                    [LastName],
-                    [Email],
-                    [Gender],
-                    [Active]) 
-                VALUES (" +
-                    "'" + user.FirstName +
-                    "', '" + user.LastName +
-                    "', '" + user.Email +
-                    "', '" + user.Gender +
-                    "','" + user.Active +
-                    "')";
-
-            Console.WriteLine("The query is " + sql);
-
-            if (_dapper.ExecuteSql(sql))
-            {
-                return Ok();
-            }
-
-            throw new Exception("Failed to add user");
-        }
-
 
         [HttpDelete("DeleteUser/{userId}")]
         public IActionResult DeleteUser(int userId)
         {
-            string sql = @"DELETE FROM TutorialAppSchema.Users WHERE UserId = "
-                        + userId.ToString();
-
-            Console.WriteLine("The query is " + sql);
+            string sql = @"TutorialAppSchema.spUser_Delete
+            @UserId = " + userId.ToString();
 
             if (_dapper.ExecuteSql(sql))
             {
                 return Ok();
             }
 
-            throw new Exception("Failed to delete user");
+            throw new Exception("Failed to Delete User");
         }
-
     }
-} 
+}
