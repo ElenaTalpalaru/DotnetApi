@@ -3,10 +3,11 @@ using DotnetApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DotnetApi.Controllers
 {
-
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UserCompleteController : ControllerBase

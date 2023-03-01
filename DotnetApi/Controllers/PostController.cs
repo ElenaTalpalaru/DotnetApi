@@ -21,7 +21,7 @@ namespace DotnetApi.Controllers
             _dapper = new DataContextDapper(config);
         }
 
-        [HttpGet("Posts/{postId}/{userId}/{searchParam}")]
+        [HttpGet("{postId}/{userId}/{searchParam}")]
         public IEnumerable<Post> GetPosts(int postId = 0, int userId = 0, string? searchParam = null)
         {
             string sql = @"EXEC TutorialAppSchema.spPosts_Get";
@@ -61,7 +61,7 @@ namespace DotnetApi.Controllers
             return _dapper.LoadData<Post>(sql);
         }
 
-        [HttpPut("UpsertPost")]
+        [HttpPut("Add_Or_UpdatePost")]
         public IActionResult UpsertPost(Post postToUpsert)
         {
             string sqlPost = $@"EXEC TutorialAppSchema.spPosts_Upsert
@@ -84,7 +84,7 @@ namespace DotnetApi.Controllers
         }                                
        
 
-        [HttpDelete("Post/{postId}")]
+        [HttpDelete("{postId}")]
         public IActionResult DeletePost(int postId)
         {
             string sql = @$"EXEC TutorialAppSchema.spPost_Delete 
